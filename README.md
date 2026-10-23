@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <strong>Songlin Yang<sup>1,*</sup> &nbsp; Zhe Wang<sup>1,*</sup> &nbsp; Xiaotong Zhao<sup>2</sup> &nbsp; Xi Wang<sup>3</sup> &nbsp; Ran Zhang<sup>2</sup> &nbsp; Shuai Li<sup>2</sup><br>
-  Taiyi Wu<sup>2</sup> &nbsp; Songlian Li<sup>2</sup> &nbsp; Eric Liu<sup>2</sup> &nbsp; Alan Zhao<sup>2</sup> &nbsp; Anyi Rao<sup>1,†</sup></strong>
+  <strong>Songlin Yang<sup>1,*,†</sup> &nbsp; Zhe Wang<sup>1,*</sup> &nbsp; Xiaotong Zhao<sup>2</sup> &nbsp; Xi Wang<sup>3</sup> &nbsp; Ran Zhang<sup>2</sup> &nbsp; Shuai Li<sup>2</sup><br>
+  Taiyi Wu<sup>2</sup> &nbsp; Songlian Li<sup>2</sup> &nbsp; Eric Liu<sup>2</sup> &nbsp; Alan Zhao<sup>2</sup> &nbsp; Anyi Rao<sup>1</sup></strong>
 </p>
 
 <p align="center">
@@ -40,6 +40,56 @@ Built on **UniVideo (13B DiT)**, FAPL improves Motion Order from 48% → **61%**
 
 - **2026-10-22**: arXiv preprint released. [[arXiv](https://arxiv.org/abs/2610.30926)] [[HTML](https://arxiv.org/html/2610.30926)]
 - **TODO**: code, checkpoints, and `CineFactor-10K` evaluation prompts release.
+
+---
+
+## Method
+
+[![FAPL training framework](assets/fapl-method.png)](assets/fapl-method.png)
+
+*FAPL framework (Figure 3 in the [paper](https://arxiv.org/html/2610.30926v1#S3.F3)).*
+
+FAPL trains MLLM representations for video generation from limited inputs and control over character, scene, action, and camera. The original connector maps MLLM hidden states into the Video DiT's conditioning space. To make the generator use these representations, all three training stages use MLLM latents as the only content condition. FAPL retains the original architecture and uses flow matching throughout training.
+
+### Stage I: MLLM-Only Generator Grounding
+
+With the MLLM and connector frozen, we train the DiT to use their projected latents. Each training video has two observation modes: its text description alone, or the description together with the complete video. Both modes share the same video target. The complete-video mode grounds the generator in visual and temporal evidence; the text-only mode prepares it for generation from limited inputs. Separate text-encoder and VAE-reference conditions are disabled during training.
+
+### Stage II: Factor-Aware Control Improvement
+
+The MLLM and connector remain frozen while the DiT learns from text-only descriptions of video pairs that differ in one factor. Structured prompts identify character, scene, action, and camera spans. We swap the selected span between the two projected sequences, after the connector and before the DiT, leaving other spans unchanged. Training uses both replacement directions with the corresponding paired video as the target.
+
+For example, replacing a static-camera span with an orbit-camera span is supervised by the paired orbit-camera video. These paired targets teach the generator both the requested change and preservation of other factors.
+
+### Stage III: Prediction From Limited Inputs
+
+We then freeze the trained DiT and jointly update the MLLM and connector. The same two observation modes still share one target video, and gradients pass through the frozen DiT to the MLLM pathway. Text-only inputs train the MLLM to infer semantic, motion, and temporal content that the generator can decode. Complete-video inputs provide complementary reconstruction supervision through the same interface, linking prediction from limited evidence to the target video.
+
+### Inference
+
+At inference, a script and optional character or scene references pass through the MLLM and connector to condition video generation. No complete target video is required. To edit one factor, we re-encode the modified prompt and replace only its corresponding latent span. For multi-shot generation, shots are generated independently, sharing character and scene references while allowing action and camera instructions to vary.
+
+See [Section 3 of the paper](https://arxiv.org/html/2610.30926v1#S3) for the full formulation and training algorithm.
+
+---
+
+## Results
+
+Selected results from [Table 1](https://arxiv.org/html/2610.30926v1#S4.T1), comparing FAPL with its UniVideo (13B) backbone. Higher is better for all three metrics.
+
+| Task | Metric | UniVideo | FAPL |
+| --- | --- | ---: | ---: |
+| Sparse-to-Video | Motion Order (%) | 48 | **61** |
+| Factor-Aware Editing | ∩-Acc (%) | 42 | **58** |
+| Multi-Shot | FaceSim-Arc | 0.451 | **0.523** |
+
+Sparse-to-video and editing each use 5K CineFactor-10K cases; multi-shot evaluation uses 100 ShotVerse-Bench sequences.
+
+[![UniVideo and FAPL comparisons for character, scene, action, and camera edits](assets/fapl-factor-editing.png)](assets/fapl-factor-editing.png)
+
+*Factor-aware editing examples from [Figure 5](https://arxiv.org/html/2610.30926v1#S4.F5). Each panel changes one prompt field, with UniVideo outputs above FAPL outputs. The comparison shows the requested edit and its effect on the remaining content.*
+
+See the [paper](https://arxiv.org/html/2610.30926v1#S4) for the full comparisons and ablations, and the [project page](https://shotverse.github.io/fapl/) for video demos.
 
 ---
 
