@@ -4,9 +4,8 @@
 <p align="center">
   <a href="https://arxiv.org/abs/2610.30926"><img src="https://img.shields.io/badge/arXiv-2610.30926-b31b1b.svg" alt="arXiv"></a>
   <a href="https://arxiv.org/html/2610.30926"><img src="https://img.shields.io/badge/Paper-HTML-00a2ff.svg" alt="Paper"></a>
-  <!-- TODO: 替换为真实的项目主页与代码仓库地址 -->
-  <a href="https://github.com/<org>/FAPL"><img src="https://img.shields.io/badge/Project-Page-green.svg" alt="Project Page"></a>
-  <a href="https://github.com/<org>/FAPL"><img src="https://img.shields.io/badge/Code-Coming%20Soon-orange.svg" alt="Code"></a>
+  <a href="https://shotverse.github.io/fapl/"><img src="https://img.shields.io/badge/Project-Page-green.svg" alt="Project Page"></a>
+  <a href="[https://github.com/<org>/FAPL](https://github.com/Songlin1998/ShotVerse2.0)"><img src="https://img.shields.io/badge/Code-Coming%20Soon-orange.svg" alt="Code"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License"></a>
 </p>
 
