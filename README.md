@@ -1,8 +1,5 @@
 # Making MLLM Latents Matter: Factor-Aware Predictive Learning for Cinematic Video Generation
 
-<div align="center">
-  <img src="assets/teaser.png" width="85%" alt="FAPL teaser">
-</div>
 
 <p align="center">
   <a href="https://arxiv.org/abs/2610.30926"><img src="https://img.shields.io/badge/arXiv-2610.30926-b31b1b.svg" alt="arXiv"></a>
@@ -46,33 +43,6 @@ Built on **UniVideo (13B DiT)**, FAPL improves Motion Order from 48% → **61%**
 - **TODO**: code, checkpoints, and `CineFactor-10K` evaluation prompts release.
 
 ---
-
-## Method
-
-Existing MLLM–DiT models concatenate three conditions `C = [C_text; C_mllm; C_ref]`. Because text-encoder and VAE-reference pathways can lower the generation loss on their own, **the DiT learns to bypass MLLM latents** (see Fig. 2 of the paper). FAPL removes this shortcut and adds task-structured supervision:
-
-```mermaid
-flowchart LR
-  subgraph S1["Stage I: MLLM-Only Generator Grounding"]
-    A1["Frozen MLLM + Connector"] --> B1["Train DiT<br/>MLLM latents only"]
-  end
-  subgraph S2["Stage II: Factor-Aware Control"]
-    A2["Frozen MLLM + Connector"] --> B2["Factor-span replacement<br/>(character/scene/action/camera)"] --> C2["Train DiT"]
-  end
-  subgraph S3["Stage III: Prediction From Limited Inputs"]
-    A3["Train MLLM + Connector"] --> B3["Frozen DiT (from Stage II)<br/>shared video target<br/>text-only + text+video"]
-  end
-  S1 --> S2 --> S3
-```
-
-### Three stages at a glance
-
-| Stage | Trainable | Frozen | Conditioning | Supervision |
-| --- | --- | --- | --- | --- |
-| I | DiT | MLLM, connector | MLLM latents **only** | `L_ground`: text-only + text+video → same target video |
-| II | DiT | MLLM, connector | MLLM latents **only**, with factor-span replacement | `L_edit`: swapped span → paired video target (both directions) |
-| III | MLLM, connector | DiT (`φ*`) | MLLM latents **only** | `L_obs`: text-only + text+video → shared target video |
-
 
 ## TODO
 
